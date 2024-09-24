@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-mcwiki-search",
   "description": "It can search Item from Minecraft Wiki, Support biligame wiki, fandom Minecraft wiki and minecraft wiki",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -10,6 +10,10 @@
   ],
   "license": "MIT",
   "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fafa-junhe/koishi-plugin-mcwiki-search.git"
+  },
   "keywords": [
     "chatbot",
     "koishi",
