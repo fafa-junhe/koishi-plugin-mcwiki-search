@@ -61,10 +61,11 @@ function getCNTime(date: Date){
   return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
 }
 
-async function look(session: Session, item: string, ctx: Context, config: Config, logger: Logger){
+async function look(session: Session, item: string, ctx: Context, config: Config, logger: Logger, rest: string [] = []){
   try{
+    console.log(item, rest, item + (Array.isArray(rest) && rest.length ? "_" + rest.join("_") : ""));
     var url: string = await new Promise((resolve, reject) => {
-      wiki_client.getArticleInfo(item, null, (err, article) => {
+      wiki_client.getArticleInfo(item + (Array.isArray(rest) && rest.length ? "_" + rest.join("_") : ""), null, (err, article) => {
         if (err){
           logger.error(err);
         }
@@ -132,9 +133,9 @@ async function look(session: Session, item: string, ctx: Context, config: Config
   return h.image(image, 'image/png');
 }
 
-async function search(session: Session, item: string, ctx: Context, config: Config, logger : Logger) {
+async function search(session: Session, item: string, ctx: Context, config: Config, logger: Logger, rest: string []) {
   var result: string = await new Promise((resolve) => {
-    wiki_client.search(item, (err, articles) => {
+    wiki_client.search(item + (Array.isArray(rest) && rest.length ? "_" + rest.join("_") : ""), (err, articles) => {
       if (err) {
         resolve("发生错误: " + err);
         return;
@@ -168,10 +169,10 @@ export async function apply(ctx: Context, config: Config) {
   });
   const logger = ctx.logger(`mcwiki`)
   ctx.command("mcwiki", "搜索我的世界wiki");
-  ctx.command("mcwiki.search <item>", "搜索某个关键词")
-     .action(({session}, item)=>search(session, item, ctx, config, logger));
-  ctx.command("mcwiki.look <item>", "查看某个页面")
-     .action(({session}, item)=>look(session, item, ctx, config, logger));
+  ctx.command("mcwiki.search <item> [...rest]", "搜索某个关键词")
+     .action(({session}, item, ...rest)=>search(session, item, ctx, config, logger, rest));
+  ctx.command("mcwiki.look <item> [...rest]", "查看某个页面")
+     .action(({session}, item, ...rest)=>look(session, item, ctx, config, logger, rest));
   ctx.on('mcwiki-search-wait-for-input', async (articles: SearchResult[], session: Session) => {
     var dispose;
     var timeout = setTimeout(()=>{
@@ -180,8 +181,8 @@ export async function apply(ctx: Context, config: Config) {
     }, 10000)
     dispose = ctx.on('message', async (current_session) => {
        if (session.event.user.id === current_session.event.user.id){
-          if (is_numeric(current_session.content)){
-            const num = parseInt(current_session.content);
+          if (is_numeric(current_session.content.trim())){
+            const num = parseInt(current_session.content.trim());
             if (num > 0 && num <= Math.min(config.maxItem, articles.length)){
               clearTimeout(timeout);
               session.execute(`mcwiki.look ${articles[num - 1].title}`)
