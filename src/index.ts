@@ -181,36 +181,38 @@ export async function apply(ctx: Context, config: Config) {
     }, 10000)
     dispose = ctx.on('message', async (current_session) => {
        if (session.event.user.id === current_session.event.user.id){
-          if (is_numeric(current_session.content.trim())){
-            const num = parseInt(current_session.content.trim());
-            if (num > 0 && num <= Math.min(config.maxItem, articles.length)){
-              clearTimeout(timeout);
-              session.execute(`mcwiki.look ${articles[num - 1].title}`)
-              return dispose();
-            }
-            else{
-              session.send(`输入错误，0 < 输入范围 <= ${Math.min(config.maxItem, articles.length)}。`)
-              clearTimeout(timeout);
-              timeout = setTimeout(()=>{
-                session.send("输入超时，退出搜索。")
-                return dispose();
-              }, 10000)
-            }
-          }
-          else{
-            for (var article of articles){
-              if (article.title == current_session.content.trim()){
-                  clearTimeout(timeout);
-                session.execute(`mcwiki.look ${article.title}`)
-                return dispose();
+         const splited = current_session.content.split(" ");
+         for (const index in splited){
+           if (is_numeric(splited[index].trim())){
+             const num = parseInt(splited[index].trim());
+             if (num > 0 && num <= Math.min(config.maxItem, articles.length)){
+               clearTimeout(timeout);
+               session.execute(`mcwiki.look ${articles[num - 1].title}`)
+               return dispose();
+             }
+             else{
+               session.send(`输入错误，0 < 输入范围 <= ${Math.min(config.maxItem, articles.length)}。`)
+               clearTimeout(timeout);
+               timeout = setTimeout(()=>{
+                 session.send("输入超时，退出搜索。")
+                 return dispose();
+               }, 10000)
               }
             }
-            session.send("输入错误，退出搜索。")
-            clearTimeout(timeout);
-            return dispose();
-          }
 
-      }
+
+        }
+       }
+       for (var article of articles){
+          if (article.title == current_session.content.trim()){
+              clearTimeout(timeout);
+              session.execute(`mcwiki.look ${article.title}`)
+              return dispose();
+            }
+        }
+        session.send("输入错误，退出搜索。")
+        clearTimeout(timeout);
+      return dispose();
     });
 
   })
