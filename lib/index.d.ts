@@ -7,6 +7,7 @@ export interface Config {
     server: string;
     path: string;
     maxItem: number;
+    searchTimeoutTime: number;
 }
 export declare const Config: Schema<Config>;
 export declare const inject: {

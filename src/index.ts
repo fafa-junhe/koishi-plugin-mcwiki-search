@@ -12,6 +12,7 @@ export interface Config {
   server: string
   path: string
   maxItem: number
+  searchTimeoutTime: number
 }
 
 
@@ -34,7 +35,10 @@ export const Config: Schema<Config> = Schema.object({
   .description("wiki的路径，例如https://wiki.biligame.com/mc/Minecraft_Wiki ，就是/mc。"),
   maxItem: Schema.number()
   .default(10)
-  .description("搜索时最多显示几项。")
+  .description("搜索时最多显示几项。"),
+  searchTimeoutTime: Schema.number()
+  .default(10000)
+  .description("搜索超时时间。单位为毫秒。")
 })
 
 export const inject = {
@@ -178,7 +182,7 @@ export async function apply(ctx: Context, config: Config) {
     var timeout = setTimeout(()=>{
       session.send("输入超时，退出搜索。")
       return dispose();
-    }, 10000)
+    }, config.searchTimeoutTime)
     dispose = ctx.on('message', async (current_session) => {
        if (session.event.user.id === current_session.event.user.id){
          const splited = current_session.content.split(" ");
@@ -196,7 +200,7 @@ export async function apply(ctx: Context, config: Config) {
                timeout = setTimeout(()=>{
                  session.send("输入超时，退出搜索。")
                  return dispose();
-               }, 10000)
+               }, config.searchTimeoutTime)
               }
             }
 
